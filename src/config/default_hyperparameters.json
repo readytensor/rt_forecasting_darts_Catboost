@@ -1,6 +1,6 @@
 {
-  "lags_forecast_ratio": 4,
-  "history_forecast_ratio": 20,
+  "lags_forecast_ratio": 3,
+  "history_forecast_ratio": 10,
   "random_state": 0,
   "lags_past_covariates": null,
   "lags_future_covariates_x": null,

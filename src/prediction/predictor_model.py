@@ -109,7 +109,6 @@ class Forecaster:
         if kwargs.get("history_length"):
             self.history_length = kwargs["history_length"]
             kwargs.pop("history_length")
-
         self.model = CatBoostModel(
             lags=self.lags,
             lags_past_covariates=self.lags_past_covariates,
