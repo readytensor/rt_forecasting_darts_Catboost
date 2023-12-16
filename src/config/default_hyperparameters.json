@@ -5,6 +5,7 @@
   "lags_past_covariates": null,
   "lags_future_covariates_x": null,
   "lags_future_covariates_y": null,
-  "output_chunk_length": null
+  "output_chunk_length": null,
+  "use_exogenous": true
 
 }
