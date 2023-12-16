@@ -117,6 +117,7 @@ class Forecaster:
         self.random_state = random_state
         self._is_trained = False
         self.kwargs = kwargs
+        self.history_length = None
 
         if history_forecast_ratio:
             self.history_length = (
@@ -297,6 +298,11 @@ class Forecaster:
             data_schema=data_schema,
             test_dataframe=test_dataframe,
         )
+
+        if not self.use_exogenous:
+            past_covariates = None
+            future_covariates = None
+
         self.model.fit(
             targets,
             past_covariates=past_covariates,
