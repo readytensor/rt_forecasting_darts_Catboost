@@ -7,6 +7,7 @@
   "lags_future_covariates_y": null,
   "output_chunk_length": null,
   "use_exogenous": true,
-  "multi_models": true
+  "multi_models": true,
+  "task_type": "GPU"
 
 }
