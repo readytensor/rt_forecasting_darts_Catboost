@@ -6,6 +6,7 @@
   "output_chunk_length": null,
   "use_exogenous": true,
   "learning_rate": 0.05,
-  "depth": 10
+  "depth": 10,
+  "task_type": "GPU"
 
 }
