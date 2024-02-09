@@ -9,10 +9,11 @@ from darts import TimeSeries
 from schema.data_schema import ForecastingSchema
 from sklearn.exceptions import NotFittedError
 from sklearn.preprocessing import MinMaxScaler
+from logger import get_logger
 
 warnings.filterwarnings("ignore")
 
-
+logger = get_logger(task_name="training")
 PREDICTOR_FILE_NAME = "predictor.joblib"
 
 
@@ -147,19 +148,6 @@ class Forecaster:
         if not self.output_chunk_length:
             self.output_chunk_length = data_schema.forecast_length
 
-        self.model = CatBoostModel(
-            lags=self.lags,
-            lags_past_covariates=self.lags_past_covariates,
-            lags_future_covariates=self.lags_future_covariates,
-            output_chunk_length=self.output_chunk_length,
-            likelihood=self.likelihood,
-            quantiles=self.quantiles,
-            use_static_covariates=use_static_covariates,
-            multi_models=self.multi_models,
-            random_seed=self.random_state,
-            **kwargs,
-        )
-
     def _prepare_data(
         self,
         history: pd.DataFrame,
@@ -222,9 +210,9 @@ class Forecaster:
             target = TimeSeries.from_dataframe(
                 s,
                 value_cols=data_schema.target,
-                static_covariates=static_covariates.iloc[0]
-                if static_covariates is not None
-                else None,
+                static_covariates=(
+                    static_covariates.iloc[0] if static_covariates is not None else None
+                ),
             )
 
             targets.append(target)
@@ -258,9 +246,9 @@ class Forecaster:
                     if len(future_covariates_names) == 1
                     else future_covariates[future_covariates_names].values
                 )
-                future_covariates[
-                    future_covariates_names
-                ] = future_scaler.fit_transform(original_values)
+                future_covariates[future_covariates_names] = (
+                    future_scaler.fit_transform(original_values)
+                )
 
                 future_covariates = TimeSeries.from_dataframe(
                     future_covariates[future_covariates_names]
@@ -348,6 +336,31 @@ class Forecaster:
 
         return future
 
+    def _validate_lags_and_history_length(self, series_length: int):
+        """
+        Validate the value of lags and that history length is at least double the forecast horizon.
+        If the provided lags value is invalid (too large), lags are set to the largest possible value.
+
+        Args:
+            series_length (int): The length of the history.
+
+        Returns: None
+        """
+        forecast_length = self.data_schema.forecast_length
+        if series_length < 2 * forecast_length:
+            raise ValueError(
+                f"Training series is too short. History should be at least double the forecast horizon. history_length = ({series_length}), forecast horizon = ({self.data_schema.forecast_length})"
+            )
+
+        if self.lags > series_length:
+            self.lags = series_length - forecast_length - 1
+            logger.warning(
+                "The provided lags value is greater than the available history length."
+                f" Lags are set to to (history length - forecast horizon - 1) = {self.lags}"
+            )
+            if self.lags_past_covariates:
+                self.lags_past_covariates = self.lags
+
     def fit(
         self,
         history: pd.DataFrame,
@@ -365,6 +378,21 @@ class Forecaster:
         targets, past_covariates, future_covariates = self._prepare_data(
             history=history,
             data_schema=data_schema,
+        )
+
+        self._validate_lags_and_history_length(series_length=len(targets[0]))
+
+        self.model = CatBoostModel(
+            lags=self.lags,
+            lags_past_covariates=self.lags_past_covariates,
+            lags_future_covariates=self.lags_future_covariates,
+            output_chunk_length=self.output_chunk_length,
+            likelihood=self.likelihood,
+            quantiles=self.quantiles,
+            use_static_covariates=self.use_static_covariates,
+            multi_models=self.multi_models,
+            random_seed=self.random_state,
+            **self.kwargs,
         )
 
         self.model.fit(

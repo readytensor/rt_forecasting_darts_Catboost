@@ -11,7 +11,7 @@ from utils import (
     read_csv_in_directory,
     read_json_as_dict,
     set_seeds,
-    Timer,
+    TimeAndMemoryTracker,
 )
 
 logger = get_logger(task_name="train")
