@@ -352,8 +352,8 @@ class Forecaster:
                 f"Training series is too short. History should be at least double the forecast horizon. history_length = ({series_length}), forecast horizon = ({self.data_schema.forecast_length})"
             )
 
-        if self.lags > series_length:
-            self.lags = series_length - forecast_length - 1
+        if self.lags > series_length - forecast_length:
+            self.lags = series_length - forecast_length
             logger.warning(
                 "The provided lags value is greater than the available history length."
                 f" Lags are set to to (history length - forecast horizon - 1) = {self.lags}"
