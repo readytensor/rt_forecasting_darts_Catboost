@@ -353,7 +353,7 @@ class Forecaster:
             )
 
         if self.lags > series_length - forecast_length:
-            self.lags = series_length - forecast_length
+            self.lags = series_length - forecast_length - 1
             logger.warning(
                 "The provided lags value is greater than the available history length."
                 f" Lags are set to to (history length - forecast horizon - 1) = {self.lags}"
